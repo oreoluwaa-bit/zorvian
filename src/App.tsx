@@ -38,7 +38,7 @@ export default function App() {
             <article className="panel assistant-panel"><div className="assistant-orb"><Sparkles size={22}/></div><div className="assistant-tag"><span/> ZORVIAN INTELLIGENCE</div><h2>Your finances, in conversation.</h2><p>Ask questions, explore currency options, and understand your activity with an AI assistant.</p><button className="assistant-button" onClick={() => go("AI assistant")}>Explore AI assistant <ArrowUpRight size={16}/></button><div className="assistant-glow"/></article>
           </section>
           <section className="panel activity-panel"><div className="panel-heading"><div><h2>Recent activity</h2><p>Your latest demo transactions</p></div><button className="text-button" onClick={() => go("Activity")}>View activity <ArrowUpRight size={15}/></button></div><div className="activity-list"><ActivityRow icon={<ArrowDownLeft size={17}/>} title="Salary payment" detail="Today · 09:42 AM" amount="+₦350,000.00" incoming/><ActivityRow icon={<ArrowUpRight size={17}/>} title="Transfer to Chidi" detail="Yesterday · 04:18 PM" amount="−₦45,000.00"/><ActivityRow icon={<ArrowLeftRight size={17}/>} title="Currency exchange" detail="Nov 07 · 11:06 AM" amount="−$120.00"/></div></section>
-        </>:page==="AI assistant"?<AssistantWorkspace/>:page==="Wallet"?<WalletWorkspace/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
+        </>:page==="AI assistant"?<AssistantWorkspace/>:page==="Wallet"?<WalletWorkspace/>:page==="Transfers"?<TransfersWorkspace/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
         <footer className="footer"><span>© 2026 Zorvian · Product prototype</span><span><ShieldCheck size={14}/> Built with security in mind</span></footer>
       </div>
     </main>
@@ -140,5 +140,51 @@ function WalletWorkspace(){
    {notice&&<div className="wallet-feedback"><CheckCircle2 size={16}/>{notice}</div>}
   </section>
   {addOpen&&<div className="wallet-modal-backdrop" onClick={()=>setAddOpen(false)}><form className="wallet-modal" onSubmit={addFunds} onClick={e=>e.stopPropagation()}><button type="button" className="wallet-modal-close" onClick={()=>setAddOpen(false)} aria-label="Close"><X size={18}/></button><div className="wallet-modal-icon"><Plus size={21}/></div><span className="eyebrow">PROTOTYPE ACTION</span><h2>Add demo funds</h2><p>This only increases the sample balance. No payment will be collected.</p><label htmlFor="demo-fund-amount">Amount ({active.code})</label><input id="demo-fund-amount" type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="Enter amount"/><div className="wallet-modal-actions"><button type="button" className="outline-button" onClick={()=>setAddOpen(false)}>Cancel</button><button type="submit" className="primary-button">Add demo funds</button></div></form></div>}
+ </div>;
+}
+
+
+type DemoTransfer = { id:string; recipient:string; destination:string; amount:string; currency:string; date:string };
+function TransfersWorkspace(){
+ const [currency,setCurrency]=useState<"NGN"|"USD"|"GHS">("NGN");
+ const [recipient,setRecipient]=useState("");
+ const [destination,setDestination]=useState("");
+ const [amount,setAmount]=useState("");
+ const [note,setNote]=useState("");
+ const [stage,setStage]=useState<"form"|"review">("form");
+ const [error,setError]=useState("");
+ const [completed,setCompleted]=useState<DemoTransfer[]>([]);
+ const symbols={NGN:"₦",USD:"$",GHS:"GH₵"};
+ const balances={NGN:1820500,USD:420,GHS:2150};
+ const formatted=(value:number)=>symbols[currency]+value.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+ const value=Number(amount);
+ const valid=recipient.trim().length>=2&&destination.trim().length>=4&&Number.isFinite(value)&&value>0&&value<=balances[currency];
+ const review=(e:React.FormEvent)=>{e.preventDefault();setError("");if(!valid){setError(value>balances[currency]?"The amount exceeds the illustrative available balance.":"Complete all fields and enter a valid amount.");return;}setStage("review");};
+ const confirm=()=>{const id="ZDV-"+Math.random().toString(36).slice(2,8).toUpperCase();setCompleted(items=>[{id,recipient:recipient.trim(),destination:destination.trim(),amount:formatted(value),currency,date:new Date().toLocaleString()},...items]);setStage("form");setRecipient("");setDestination("");setAmount("");setNote("");setError("Demo transfer recorded. No money was sent and wallet balances were not changed.");};
+ return <div className="transfer-workspace">
+  <div className="transfer-intro"><div><span className="eyebrow">SEND MONEY</span><h2>Move money with clarity.</h2><p>Explore a transfer journey with a review step before simulated confirmation.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Simulation only</span></div>
+  <div className="transfer-layout">
+   <section className="transfer-form-panel">
+    <div className="transfer-step-heading"><span className="transfer-step-number">{stage==="form"?"1":"2"}</span><div><h3>{stage==="form"?"Transfer details":"Review transfer"}</h3><p>{stage==="form"?"Enter the recipient and amount.":"Check the details before recording this demo."}</p></div></div>
+    {stage==="form"?<form onSubmit={review} className="transfer-form">
+      <label htmlFor="transfer-currency">Send from</label><select id="transfer-currency" value={currency} onChange={e=>setCurrency(e.target.value as typeof currency)}><option value="NGN">🇳🇬 Nigerian Naira (NGN)</option><option value="USD">🇺🇸 US Dollar (USD)</option><option value="GHS">🇬🇭 Ghanaian Cedi (GHS)</option></select>
+      <div className="transfer-available">Illustrative available balance <strong>{formatted(balances[currency])}</strong></div>
+      <label htmlFor="transfer-recipient">Recipient name</label><input id="transfer-recipient" value={recipient} onChange={e=>setRecipient(e.target.value)} placeholder="e.g. Amara Okafor" required/>
+      <label htmlFor="transfer-destination">Destination account / wallet</label><input id="transfer-destination" value={destination} onChange={e=>setDestination(e.target.value)} placeholder="Enter demo account or wallet ID" required/>
+      <label htmlFor="transfer-amount">Amount ({currency})</label><input id="transfer-amount" type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00" required/>
+      <label htmlFor="transfer-note">Note <span className="optional-label">Optional</span></label><input id="transfer-note" value={note} onChange={e=>setNote(e.target.value)} placeholder="What is this transfer for?"/>
+      {error&&<div className="transfer-feedback"><CheckCircle2 size={15}/>{error}</div>}
+      <button type="submit" className="primary-button transfer-submit">Review transfer <ArrowRight size={16}/></button>
+    </form>:<div className="transfer-review">
+      <div className="transfer-review-banner"><ShieldCheck size={18}/><span>Review carefully before confirming this simulated transfer.</span></div>
+      <div className="transfer-review-amount">{formatted(value)}<small>{currency}</small></div>
+      <div className="transfer-review-rows"><div><span>Recipient</span><strong>{recipient}</strong></div><div><span>Destination</span><strong>{destination}</strong></div><div><span>From wallet</span><strong>{currency}</strong></div><div><span>Note</span><strong>{note||"—"}</strong></div><div><span>Demo fee</span><strong>{symbols[currency]}0.00</strong></div></div>
+      <div className="transfer-review-actions"><button className="outline-button" onClick={()=>setStage("form")}>Edit details</button><button className="primary-button" onClick={confirm}><CheckCircle2 size={16}/> Confirm demo transfer</button></div>
+      <p className="transfer-disclaimer">This confirmation only creates a local demo record. No money is sent, no external account is contacted and no wallet balance is changed.</p>
+    </div>}
+   </section>
+   <aside className="transfer-side-panel"><div className="transfer-side-icon"><Send size={21}/></div><h3>Designed for confident transfers</h3><p>A real transfer flow should clearly show the recipient, currency, amount, fees and final amount before asking for explicit confirmation.</p><div className="transfer-safety-point"><ShieldCheck size={16}/><span>Explicit confirmation before any real payment</span></div><div className="transfer-safety-point"><Globe2 size={16}/><span>Cross-border support planned for future integration</span></div></aside>
+  </div>
+  {completed.length>0&&<section className="transfer-history-panel"><div className="panel-heading"><div><h2>Demo transfer activity</h2><p>Records created in this browser session</p></div><span className="wallet-activity-count">{completed.length} records</span></div>{completed.map(item=><div className="activity-row" key={item.id}><div className="activity-icon"><ArrowUpRight size={17}/></div><div className="activity-copy"><strong>{item.recipient} · {item.amount}</strong><span>{item.id} · {item.date}</span></div><span className="transfer-demo-status">SIMULATED</span></div>)}</section>}
  </div>;
 }
