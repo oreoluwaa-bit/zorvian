@@ -1,5 +1,5 @@
-import { useState, useSyncExternalStore } from "react";
-import { Activity, ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ArrowRight, Bell, Bot, CheckCircle2, ChevronDown, CircleHelp, CreditCard, Download, Filter, Globe2, LayoutDashboard, Menu, Plus, Search, Send, Settings, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { Activity, ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ArrowRight, Bell, Bot, CheckCircle2, ChevronDown, CircleHelp, CreditCard, Download, Filter, Globe2, LayoutDashboard, Menu, Moon, Monitor, Plus, Search, Send, Settings, ShieldCheck, Sparkles, Sun, Wallet, X } from "lucide-react";
 
 type Page = "Overview" | "Wallet" | "Transfers" | "Exchange" | "AI assistant" | "Activity" | "Settings";
 const pages: { label: Page; icon: typeof LayoutDashboard }[] = [
@@ -13,9 +13,14 @@ export default function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [page, setPage] = useState<Page>("Overview");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme,setTheme]=useState<"light"|"dark"|"system">(()=>{try{return (localStorage.getItem("zorvian-theme") as "light"|"dark"|"system")||"light";}catch{return "light";}});
+  const [systemDark,setSystemDark]=useState(()=>window.matchMedia?.("(prefers-color-scheme: dark)").matches??false);
+  const resolvedTheme=theme==="system"?(systemDark?"dark":"light"):theme;
+  useEffect(()=>{try{localStorage.setItem("zorvian-theme",theme);}catch{}},[theme]);
+  useEffect(()=>{const media=window.matchMedia("(prefers-color-scheme: dark)");const update=()=>setSystemDark(media.matches);update();media.addEventListener?.("change",update);return()=>media.removeEventListener?.("change",update);},[]);
   const go = (next: Page) => { setPage(next); setMenuOpen(false); };
   if (showLanding) return <LandingPage onEnter={() => setShowLanding(false)} />;
-  return <div className="app-shell">
+  return <div className="app-shell" data-theme={resolvedTheme}>
     <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
       <div className="brand"><div className="brand-mark"><Globe2 size={21}/></div><span>zorvian<span className="brand-period">.</span></span><button className="icon-button mobile-close" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X size={19}/></button></div>
       <div className="workspace-label">WORKSPACE</div>
@@ -39,7 +44,7 @@ export default function App() {
             <article className="panel assistant-panel"><div className="assistant-orb"><Sparkles size={22}/></div><div className="assistant-tag"><span/> ZORVIAN INTELLIGENCE</div><h2>Your finances, in conversation.</h2><p>Ask questions, explore currency options, and understand your activity with an AI assistant.</p><button className="assistant-button" onClick={() => go("AI assistant")}>Explore AI assistant <ArrowUpRight size={16}/></button><div className="assistant-glow"/></article>
           </section>
           <section className="panel activity-panel"><div className="panel-heading"><div><h2>Recent activity</h2><p>Your latest demo transactions</p></div><button className="text-button" onClick={() => go("Activity")}>View activity <ArrowUpRight size={15}/></button></div><div className="activity-list">{transactions.slice(0,3).map(item=><ActivityRow key={item.id} icon={item.type==="exchange"?<ArrowLeftRight size={17}/>:item.incoming?<ArrowDownLeft size={17}/>:<ArrowUpRight size={17}/>} title={item.title} detail={item.date+" · "+item.id} amount={item.amount} incoming={item.incoming}/>)}</div></section>
-        </>:page==="AI assistant"?<AssistantWorkspace/>:page==="Wallet"?<WalletWorkspace/>:page==="Transfers"?<TransfersWorkspace/>:page==="Exchange"?<ExchangeWorkspace/>:page==="Activity"?<ActivityWorkspace/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
+        </>:page==="AI assistant"?<AssistantWorkspace/>:page==="Wallet"?<WalletWorkspace/>:page==="Transfers"?<TransfersWorkspace/>:page==="Exchange"?<ExchangeWorkspace/>:page==="Activity"?<ActivityWorkspace/>:page==="Settings"?<SettingsWorkspace theme={theme} setTheme={setTheme}/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
         <footer className="footer"><span>© 2026 Zorvian · Product prototype</span><span><ShieldCheck size={14}/> Built with security in mind</span></footer>
       </div>
     </main>
@@ -174,6 +179,46 @@ function ActivityWorkspace(){
    </div>
    <div className="wallet-modal-actions"><button type="button" className="primary-button" onClick={()=>setSelected(null)}>Close details</button></div>
   </section></div>}
+ </section>;
+}
+
+
+function SettingsWorkspace({theme,setTheme}:{theme:"light"|"dark"|"system";setTheme:(value:"light"|"dark"|"system")=>void}){
+ const [profile,setProfile]=useState(()=>{try{return localStorage.getItem("zorvian-demo-profile")||"Zorvian Demo";}catch{return "Zorvian Demo";}});
+ const [currency,setCurrency]=useState(()=>{try{return localStorage.getItem("zorvian-preferred-currency")||"NGN";}catch{return "NGN";}});
+ const [language,setLanguage]=useState(()=>{try{return localStorage.getItem("zorvian-language")||"English";}catch{return "English";}});
+ const [alerts,setAlerts]=useState<{activity:boolean;security:boolean;product:boolean}>(()=>{try{return JSON.parse(localStorage.getItem("zorvian-notification-preferences")||'{"activity":true,"security":true,"product":false}');}catch{return {activity:true,security:true,product:false};}});
+ const [saved,setSaved]=useState("");
+ const save=(key:string,value:string)=>{try{localStorage.setItem(key,value);setSaved("Your preference has been saved in this browser.");}catch{setSaved("This browser could not save the preference.");}};
+ const changeAlert=(key:"activity"|"security"|"product")=>{const next={...alerts,[key]:!alerts[key]};setAlerts(next);save("zorvian-notification-preferences",JSON.stringify(next));};
+ const themes=[{id:"light" as const,label:"Light",description:"A bright, clean workspace",icon:<Sun size={19}/>},{id:"dark" as const,label:"Dark",description:"A focused low-light workspace",icon:<Moon size={19}/>},{id:"system" as const,label:"System",description:"Follow your device appearance",icon:<Monitor size={19}/>}];
+ return <section className="settings-workspace">
+  <div className="settings-intro"><div><span className="eyebrow">PREFERENCES & ACCOUNT</span><h2>Make Zorvian yours.</h2><p>Manage your demo profile, appearance and workspace preferences.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Local demo settings</span></div>
+  <section className="settings-section"><div className="settings-section-heading"><div className="settings-section-icon"><Sun size={19}/></div><div><h3>Appearance</h3><p>Choose how Zorvian looks across your workspace.</p></div></div>
+   <div className="theme-choice-grid">{themes.map(option=><button key={option.id} className={"theme-choice "+(theme===option.id?"selected":"")} onClick={()=>{setTheme(option.id);setSaved("Appearance preference saved.");}} aria-pressed={theme===option.id}><span className="theme-choice-icon">{option.icon}</span><strong>{option.label}</strong><small>{option.description}</small>{theme===option.id&&<span className="theme-selected-mark"><CheckCircle2 size={15}/> Selected</span>}</button>)}</div>
+   <p className="settings-helper">Your selection is saved automatically and remains active after refreshing the app.</p>
+  </section>
+  <section className="settings-section"><div className="settings-section-heading"><div className="settings-section-icon"><CreditCard size={19}/></div><div><h3>Profile & account</h3><p>Basic information for this prototype account.</p></div></div>
+   <div className="settings-form-grid"><label>Display name<input value={profile} onChange={e=>setProfile(e.target.value)} placeholder="Your display name"/></label><label>Account type<input value="Prototype account" readOnly/></label></div>
+   <div className="settings-action-row"><span>Changes affect only the local demo profile.</span><button className="outline-button" onClick={()=>save("zorvian-demo-profile",profile.trim()||"Zorvian Demo")}>Save profile</button></div>
+  </section>
+  <section className="settings-section"><div className="settings-section-heading"><div className="settings-section-icon"><Globe2 size={19}/></div><div><h3>Regional preferences</h3><p>Set your preferred display currency and language.</p></div></div>
+   <div className="settings-form-grid"><label>Preferred currency<select value={currency} onChange={e=>{setCurrency(e.target.value);save("zorvian-preferred-currency",e.target.value);}}><option value="NGN">NGN · Nigerian Naira</option><option value="USD">USD · US Dollar</option><option value="GHS">GHS · Ghanaian Cedi</option></select></label><label>Language<select value={language} onChange={e=>{setLanguage(e.target.value);save("zorvian-language",e.target.value);}}><option>English</option></select></label></div>
+   <p className="settings-helper">These preferences are saved locally. Currency selection does not change wallet balances or convert money.</p>
+  </section>
+  <section className="settings-section"><div className="settings-section-heading"><div className="settings-section-icon"><Bell size={19}/></div><div><h3>Notifications</h3><p>Choose which demo notification categories you prefer.</p></div></div>
+   <div className="settings-toggle-list">
+    <div><span><strong>Activity updates</strong><small>Demo transfer, wallet and exchange activity.</small></span><button className={"settings-switch "+(alerts.activity?"on":"")} role="switch" aria-checked={alerts.activity} onClick={()=>changeAlert("activity")}><i/></button></div>
+    <div><span><strong>Security notices</strong><small>Prototype security and session information.</small></span><button className={"settings-switch "+(alerts.security?"on":"")} role="switch" aria-checked={alerts.security} onClick={()=>changeAlert("security")}><i/></button></div>
+    <div><span><strong>Product announcements</strong><small>Updates about upcoming Zorvian features.</small></span><button className={"settings-switch "+(alerts.product?"on":"")} role="switch" aria-checked={alerts.product} onClick={()=>changeAlert("product")}><i/></button></div>
+   </div>
+  </section>
+  <section className="settings-section"><div className="settings-section-heading"><div className="settings-section-icon"><ShieldCheck size={19}/></div><div><h3>Security & privacy</h3><p>Important information about this prototype environment.</p></div></div>
+   <div className="settings-security-list"><div><span>Environment</span><strong>Demo only</strong></div><div><span>Financial connections</span><strong>None connected</strong></div><div><span>Data storage</span><strong>Browser local storage</strong></div><div><span>Authentication</span><strong>Not enabled in prototype</strong></div></div>
+   <div className="settings-security-note"><ShieldCheck size={16}/><span>Do not enter real banking credentials, card details, passwords or sensitive financial information. This prototype does not provide production account security.</span></div>
+  </section>
+  {saved&&<div className="settings-saved"><CheckCircle2 size={15}/>{saved}</div>}
+  <div className="settings-footer-note">Zorvian prototype · Settings are stored locally in this browser and are not synced to a user account.</div>
  </section>;
 }
 
