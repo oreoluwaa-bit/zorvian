@@ -38,7 +38,7 @@ export default function App() {
             <article className="panel assistant-panel"><div className="assistant-orb"><Sparkles size={22}/></div><div className="assistant-tag"><span/> ZORVIAN INTELLIGENCE</div><h2>Your finances, in conversation.</h2><p>Ask questions, explore currency options, and understand your activity with an AI assistant.</p><button className="assistant-button" onClick={() => go("AI assistant")}>Explore AI assistant <ArrowUpRight size={16}/></button><div className="assistant-glow"/></article>
           </section>
           <section className="panel activity-panel"><div className="panel-heading"><div><h2>Recent activity</h2><p>Your latest demo transactions</p></div><button className="text-button" onClick={() => go("Activity")}>View activity <ArrowUpRight size={15}/></button></div><div className="activity-list"><ActivityRow icon={<ArrowDownLeft size={17}/>} title="Salary payment" detail="Today · 09:42 AM" amount="+₦350,000.00" incoming/><ActivityRow icon={<ArrowUpRight size={17}/>} title="Transfer to Chidi" detail="Yesterday · 04:18 PM" amount="−₦45,000.00"/><ActivityRow icon={<ArrowLeftRight size={17}/>} title="Currency exchange" detail="Nov 07 · 11:06 AM" amount="−$120.00"/></div></section>
-        </>:page==="AI assistant"?<AssistantWorkspace/>:page==="Wallet"?<WalletWorkspace/>:page==="Transfers"?<TransfersWorkspace/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
+        </>:page==="AI assistant"?<AssistantWorkspace/>:page==="Wallet"?<WalletWorkspace/>:page==="Transfers"?<TransfersWorkspace/>:page==="Exchange"?<ExchangeWorkspace/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
         <footer className="footer"><span>© 2026 Zorvian · Product prototype</span><span><ShieldCheck size={14}/> Built with security in mind</span></footer>
       </div>
     </main>
@@ -143,6 +143,59 @@ function WalletWorkspace(){
  </div>;
 }
 
+
+
+type ExchangeCode="NGN"|"USD"|"GHS";
+const demoRates:Record<ExchangeCode,Record<ExchangeCode,number>>={
+ NGN:{NGN:1,USD:0.00065,GHS:0.0098},
+ USD:{NGN:1538.46,USD:1,GHS:15.08},
+ GHS:{NGN:102.04,USD:0.0663,GHS:1}
+};
+const exchangeSymbols:Record<ExchangeCode,string>={NGN:"₦",USD:"$",GHS:"GH₵"};
+const exchangeBalances:Record<ExchangeCode,number>={NGN:1820500,USD:420,GHS:2150};
+function ExchangeWorkspace(){
+ const [from,setFrom]=useState<ExchangeCode>("NGN");
+ const [to,setTo]=useState<ExchangeCode>("USD");
+ const [amount,setAmount]=useState("100000");
+ const [review,setReview]=useState(false);
+ const [records,setRecords]=useState<{id:string;from:string;to:string;date:string}[]>([]);
+ const [notice,setNotice]=useState("");
+ const source=Number(amount);
+ const rate=demoRates[from][to];
+ const fee=source*.005;
+ const received=(source-fee)*rate;
+ const valid=from!==to&&Number.isFinite(source)&&source>0&&source<=exchangeBalances[from];
+ const money=(v:number,c:ExchangeCode)=>exchangeSymbols[c]+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+ const swap=()=>{setFrom(to);setTo(from);setReview(false);setNotice("");};
+ const submit=(e:React.FormEvent)=>{e.preventDefault();setNotice("");if(!valid){setNotice(from===to?"Choose two different currencies.":source>exchangeBalances[from]?"Amount exceeds the illustrative source wallet balance.":"Enter a valid amount.");return;}setReview(true);};
+ const confirm=()=>{const id="FX-"+Math.random().toString(36).slice(2,8).toUpperCase();setRecords(items=>[{id,from:money(source,from)+" "+from,to:money(received,to)+" "+to,date:new Date().toLocaleString()},...items]);setReview(false);setNotice("Demo conversion recorded. Wallet balances have not changed and no currency was exchanged.");};
+ return <div className="exchange-workspace">
+  <div className="exchange-intro"><div><span className="eyebrow">CURRENCY CONVERSION</span><h2>One world. Multiple currencies.</h2><p>Preview a conversion across the currencies in your demo wallets.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Indicative demo rates</span></div>
+  <div className="exchange-layout">
+   <section className="exchange-converter-panel">
+    <div className="exchange-panel-title"><div><h3>Currency converter</h3><p>Explore an illustrative conversion quote.</p></div><span className="exchange-live-tag"><i/> DEMO QUOTE</span></div>
+    {review?<div className="exchange-review">
+      <div className="transfer-review-banner"><ShieldCheck size={17}/> Review your conversion before confirming.</div>
+      <div className="exchange-review-total"><span>You convert</span><strong>{money(source,from)} <small>{from}</small></strong></div>
+      <div className="exchange-review-equals">↓</div>
+      <div className="exchange-review-total receive"><span>Estimated demo amount</span><strong>{money(received,to)} <small>{to}</small></strong></div>
+      <div className="transfer-review-rows"><div><span>Indicative rate</span><strong>1 {from} = {rate.toLocaleString("en-US",{maximumFractionDigits:6})} {to}</strong></div><div><span>Demo fee (0.5%)</span><strong>{money(fee,from)}</strong></div><div><span>Rate source</span><strong>Fixed prototype sample</strong></div></div>
+      <div className="transfer-review-actions"><button className="outline-button" onClick={()=>setReview(false)}>Edit</button><button className="primary-button" onClick={confirm}><CheckCircle2 size={16}/> Confirm demo conversion</button></div>
+      <p className="transfer-disclaimer">This records a simulated conversion only. No funds move, no wallet balance changes and no live rate is used.</p>
+    </div>:<form className="exchange-form" onSubmit={submit}>
+      <div className="exchange-currency-box"><label htmlFor="exchange-from">You convert</label><div className="exchange-input-row"><input id="exchange-amount" aria-label="Amount to convert" type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)}/><select id="exchange-from" value={from} onChange={e=>setFrom(e.target.value as ExchangeCode)}><option value="NGN">🇳🇬 NGN</option><option value="USD">🇺🇸 USD</option><option value="GHS">🇬🇭 GHS</option></select></div><small>Demo balance: {money(exchangeBalances[from],from)}</small></div>
+      <div className="exchange-swap-row"><span/><button type="button" onClick={swap} aria-label="Swap currencies"><ArrowLeftRight size={17}/></button><span/></div>
+      <div className="exchange-currency-box receive-box"><label htmlFor="exchange-to">You receive (estimated)</label><div className="exchange-input-row"><strong>{Number.isFinite(source)&&source>0?money(Math.max(0,received),to):money(0,to)}</strong><select id="exchange-to" value={to} onChange={e=>setTo(e.target.value as ExchangeCode)}><option value="NGN">🇳🇬 NGN</option><option value="USD">🇺🇸 USD</option><option value="GHS">🇬🇭 GHS</option></select></div><small>Illustrative estimate only</small></div>
+      <div className="exchange-quote-details"><div><span>Indicative demo rate</span><strong>1 {from} = {rate.toLocaleString("en-US",{maximumFractionDigits:6})} {to}</strong></div><div><span>Demo conversion fee</span><strong>0.5% · {money(Number.isFinite(source)&&source>0?fee:0,from)}</strong></div></div>
+      {notice&&<div className="transfer-feedback">{notice}</div>}
+      <button type="submit" className="primary-button exchange-submit">Review conversion <ArrowRight size={16}/></button>
+    </form>}
+   </section>
+   <aside className="exchange-info-panel"><div className="transfer-side-icon"><Globe2 size={21}/></div><h3>Currency without borders</h3><p>Zorvian is designed to make multi-currency experiences easier to understand. This screen demonstrates how a clear conversion quote could work.</p><div className="exchange-info-stat"><span>Supported demo currencies</span><strong>NGN · USD · GHS</strong></div><div className="exchange-info-stat"><span>Quote type</span><strong>Fixed illustrative rates</strong></div><div className="exchange-info-warning"><ShieldCheck size={16}/><span>Not connected to a live FX provider. Actual rates and fees may differ.</span></div></aside>
+  </div>
+  {records.length>0&&<section className="transfer-history-panel"><div className="panel-heading"><div><h2>Demo exchange activity</h2><p>Simulated conversions recorded in this browser session</p></div><span className="wallet-activity-count">{records.length} records</span></div>{records.map(r=><div className="activity-row" key={r.id}><div className="activity-icon"><ArrowLeftRight size={17}/></div><div className="activity-copy"><strong>{r.from} → {r.to}</strong><span>{r.id} · {r.date}</span></div><span className="transfer-demo-status">SIMULATED</span></div>)}</section>}
+ </div>;
+}
 
 type DemoTransfer = { id:string; recipient:string; destination:string; amount:string; currency:string; date:string };
 function TransfersWorkspace(){
