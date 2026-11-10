@@ -120,3 +120,49 @@
 .transfer-demo-status{font-size:8px;letter-spacing:.6px;font-weight:800;color:#9a7841;background:#fff7e8;border-radius:20px;padding:6px 8px;white-space:nowrap}
 @media(max-width:850px){.transfer-layout{grid-template-columns:1fr}.transfer-side-panel{min-height:0}}
 @media(max-width:720px){.transfer-workspace{gap:13px}.transfer-intro{align-items:flex-start;flex-direction:column}.transfer-intro h2{font-size:19px}.transfer-form-panel,.transfer-side-panel,.transfer-history-panel{padding:16px}.transfer-review-amount{font-size:27px}.transfer-review-actions{justify-content:stretch}.transfer-review-actions button{flex:1;justify-content:center}.transfer-history-panel .activity-row{gap:8px}.transfer-demo-status{font-size:7px;padding:5px 6px}}
+
+
+/* Currency exchange workspace */
+.exchange-workspace{display:grid;gap:17px}
+.exchange-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.exchange-intro h2{font:800 21px Manrope,sans-serif;color:#202a3d;letter-spacing:-.6px;margin:8px 0 5px}
+.exchange-intro p{font-size:11px;color:#929bad;margin:0}
+.exchange-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,.8fr);gap:14px;align-items:start}
+.exchange-converter-panel,.exchange-info-panel{padding:22px;border:1px solid #e9eaf2;border-radius:16px;background:#fff;box-shadow:0 5px 22px #28365a08}
+.exchange-panel-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:18px;border-bottom:1px solid #f0f1f5}
+.exchange-panel-title h3{font:750 14px Manrope,sans-serif;color:#283149;margin:0 0 5px}
+.exchange-panel-title p{font-size:10px;color:#929bad;margin:0}
+.exchange-live-tag{display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.7px;font-weight:800;color:#8a7946;background:#fff8e8;border-radius:20px;padding:7px 9px;white-space:nowrap}
+.exchange-live-tag i{width:6px;height:6px;border-radius:50%;background:#d8a94f}
+.exchange-form{padding-top:20px}
+.exchange-currency-box{border:1px solid #e5e7ef;border-radius:12px;padding:15px;background:#fbfbfe}
+.exchange-currency-box label{display:block;font-size:10px;font-weight:700;color:#7f899b;margin-bottom:12px}
+.exchange-input-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.exchange-input-row input{min-width:0;width:65%;border:0;outline:0;background:transparent;color:#273047;font:800 25px Manrope,sans-serif;letter-spacing:-.7px}
+.exchange-input-row>strong{font:800 23px Manrope,sans-serif;color:#5746b4;letter-spacing:-.7px;overflow-wrap:anywhere}
+.exchange-input-row select{border:1px solid #e6e6ef;border-radius:8px;padding:9px 7px;background:white;color:#394258;font-size:10px;font-weight:700;max-width:115px}
+.exchange-currency-box>small{display:block;font-size:9px;color:#9ba3b1;margin-top:10px}
+.receive-box{background:#f7f5ff;border-color:#e8e2ff}
+.exchange-swap-row{display:flex;align-items:center;gap:10px;padding:7px 10px}
+.exchange-swap-row>span{height:1px;background:#eceef4;flex:1}
+.exchange-swap-row button{width:33px;height:33px;border:1px solid #e6e1fb;border-radius:10px;background:#fff;color:#7057df;display:grid;place-items:center}
+.exchange-quote-details{margin:17px 0;border-top:1px solid #eff0f4}
+.exchange-quote-details>div{display:flex;justify-content:space-between;gap:12px;padding:12px 2px;border-bottom:1px solid #eff0f4;font-size:10px}
+.exchange-quote-details span{color:#929bad}.exchange-quote-details strong{color:#45516a;text-align:right}
+.exchange-submit{width:100%;justify-content:center}
+.exchange-info-panel{background:linear-gradient(155deg,#28244f,#51429a);color:white;min-height:290px}
+.exchange-info-panel h3{font:750 15px Manrope,sans-serif;color:white;margin:0 0 9px}
+.exchange-info-panel>p{font-size:10px;line-height:1.8;color:#d0cbe7;margin:0 0 20px}
+.exchange-info-stat{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #ffffff20;font-size:9px}
+.exchange-info-stat span{color:#c2bddb}.exchange-info-stat strong{color:#fff;text-align:right}
+.exchange-info-warning{display:flex;gap:8px;align-items:flex-start;padding:12px;margin-top:12px;border-radius:9px;background:#ffffff12;color:#e0dbf4;font-size:9px;line-height:1.6}
+.exchange-info-warning svg{flex-shrink:0;color:#b8a9ff}
+.exchange-review{padding-top:17px}
+.exchange-review-total{padding:18px 12px;display:flex;flex-direction:column;gap:7px;text-align:center}
+.exchange-review-total span{font-size:10px;color:#929bad}
+.exchange-review-total strong{font:800 24px Manrope,sans-serif;color:#30394e;overflow-wrap:anywhere}
+.exchange-review-total small{font-size:11px;color:#8791a4}
+.exchange-review-total.receive strong{color:#5c4bb8}
+.exchange-review-equals{text-align:center;color:#a89ce7;font-size:19px}
+@media(max-width:850px){.exchange-layout{grid-template-columns:1fr}.exchange-info-panel{min-height:0}}
+@media(max-width:720px){.exchange-workspace{gap:13px}.exchange-intro{align-items:flex-start;flex-direction:column}.exchange-intro h2{font-size:19px}.exchange-converter-panel,.exchange-info-panel{padding:16px}.exchange-input-row input{font-size:21px}.exchange-input-row>strong{font-size:19px}.exchange-review-total strong{font-size:21px}}
