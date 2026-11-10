@@ -184,3 +184,40 @@
 .shared-ledger-empty{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#9aa2b0;text-align:center}
 .shared-ledger-empty svg{color:#8877df}.shared-ledger-empty strong{font-size:13px;color:#59647a}.shared-ledger-empty span{font-size:10px}
 @media(max-width:720px){.shared-activity-intro{align-items:flex-start;flex-direction:column}.shared-activity-intro h2{font-size:19px}.shared-activity-summary{grid-template-columns:1fr;gap:8px}.shared-activity-summary>div{padding:12px;display:flex;align-items:center;justify-content:space-between}.shared-ledger-panel{padding:15px}.shared-ledger-panel .activity-row{align-items:flex-start;gap:8px}.shared-ledger-amount{min-width:95px}.shared-ledger-amount strong{font-size:9px}.shared-ledger-panel .activity-copy strong{font-size:10px}.shared-ledger-panel .activity-copy span{font-size:8px}}
+
+
+/* Activity centre: filters, CSV export and transaction details */
+.activity-export-button{display:inline-flex;align-items:center;gap:7px;padding:10px 13px;font-size:10px;white-space:nowrap}
+.activity-export-button:disabled{opacity:.45;cursor:not-allowed}
+.activity-filter-bar{display:grid;grid-template-columns:minmax(190px,1.7fr) repeat(4,minmax(105px,1fr)) auto;gap:9px;align-items:end;padding:15px 0 17px;border-bottom:1px solid #eff0f4}
+.activity-filter-bar>label{display:grid;gap:6px;min-width:0}
+.activity-filter-bar>label>span{font-size:9px;font-weight:700;color:#7f899b}
+.activity-filter-bar input,.activity-filter-bar select{width:100%;height:38px;min-width:0;padding:0 9px;border:1px solid #e3e5ed;border-radius:8px;background:#fff;color:#394258;font:inherit;font-size:10px;outline:0}
+.activity-filter-bar input:focus,.activity-filter-bar select:focus{border-color:#9c8ce9;box-shadow:0 0 0 3px #8068ed16}
+.activity-search{height:38px;display:flex!important;grid-template-columns:none!important;flex-direction:row;align-items:center;gap:8px!important;padding:0 10px;border:1px solid #e3e5ed;border-radius:8px;color:#929bad}
+.activity-search input{height:34px;border:0;padding:0;outline:0;box-shadow:none!important}
+.activity-clear-button{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;font-size:9px;white-space:nowrap}
+.activity-date-note{font-size:9px;line-height:1.6;color:#8a7445;background:#fff9eb;border-radius:8px;padding:9px 11px;margin:10px 0 0}
+.activity-table-list .activity-row{gap:12px}
+.activity-view-button{display:inline-flex;align-items:center;gap:5px;border:1px solid #e7e3f5;border-radius:8px;background:#fff;color:#6c59c5;padding:8px 10px;font-size:9px;font-weight:700;white-space:nowrap}
+.activity-view-button:hover{background:#f6f3ff;border-color:#cfc5f5}
+.activity-results-footer{padding-top:13px;margin-top:3px;border-top:1px solid #eff0f4;color:#969eac;font-size:9px}
+.activity-detail-modal{max-height:min(88vh,760px);overflow-y:auto}
+.activity-detail-status{display:inline-flex;padding:7px 9px;margin:5px 0 14px;border-radius:20px;background:#fff7e8;color:#98713a;font-size:8px;font-weight:800;letter-spacing:.5px}
+.activity-detail-modal .transfer-review-rows>div{align-items:flex-start}
+.activity-detail-modal .transfer-review-rows strong{max-width:65%;font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:1050px){.activity-filter-bar{grid-template-columns:repeat(3,minmax(0,1fr))}.activity-search{grid-column:span 2}}
+@media(max-width:720px){
+ .shared-ledger-panel .panel-heading{align-items:flex-start;gap:10px;flex-wrap:wrap}
+ .activity-export-button{font-size:9px;padding:9px 10px}
+ .activity-filter-bar{grid-template-columns:1fr 1fr;gap:9px;padding:12px 0}
+ .activity-search{grid-column:1/-1}
+ .activity-clear-button{grid-column:1/-1}
+ .activity-table-list .activity-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px}
+ .activity-table-list .activity-copy{min-width:0}
+ .activity-table-list .activity-copy span{overflow-wrap:anywhere}
+ .activity-view-button{grid-column:2/-1;justify-self:start;padding:6px 9px}
+ .shared-ledger-amount{grid-column:3;grid-row:1;min-width:0}
+ .activity-detail-modal{padding:22px 17px}
+ .activity-detail-modal .transfer-review-rows strong{max-width:62%}
+}
