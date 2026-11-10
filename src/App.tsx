@@ -156,8 +156,9 @@ const walletActivity:Record<DemoWallet["code"],{title:string;detail:string;amoun
  GHS:[{title:"Demo wallet credit",detail:"Nov 06 · 10:15 AM",amount:"+GH₵500.00",incoming:true},{title:"Local payment",detail:"Nov 04 · 02:20 PM",amount:"−GH₵75.00"}]
 };
 function WalletWorkspace(){
- const [wallets,setWallets]=useState(startingWallets),[selected,setSelected]=useState<DemoWallet["code"]>("NGN"),[addOpen,setAddOpen]=useState(false),[amount,setAmount]=useState(""),[notice,setNotice]=useState("");
- const active=wallets.find(w=>w.code===selected)!;
+ const {wallets,transactions}=useDemoState();
+ const [selected,setSelected]=useState<DemoWallet["code"]>("NGN"),[addOpen,setAddOpen]=useState(false),[amount,setAmount]=useState(""),[notice,setNotice]=useState("");
+ const active=wallets.find(w=>w.code===selected) ?? wallets[0];
  const money=active.symbol+active.balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
  const addFunds=(e:React.FormEvent)=>{e.preventDefault();const value=Number(amount);if(!Number.isFinite(value)||value<=0||value>100000000){setNotice("Enter a valid positive amount.");return;}updateDemoState(state=>({...state,wallets:state.wallets.map(w=>w.code===selected?{...w,balance:w.balance+value}:w),transactions:[{id:"CREDIT-"+Math.random().toString(36).slice(2,8).toUpperCase(),type:"credit",title:"Demo funds added",detail:"Manual prototype wallet credit",amount:"+"+formatDemoMoney(value,selected),currency:selected,date:new Date().toLocaleString(),incoming:true},...state.transactions]}));setNotice("Demo funds added and recorded in shared activity. No real money was moved.");setAmount("");setAddOpen(false);};
  return <div className="wallet-workspace">
