@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore } from "react";
-import { Activity, ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ArrowRight, Bell, Bot, CheckCircle2, ChevronDown, CircleHelp, CreditCard, Globe2, LayoutDashboard, Menu, Plus, Send, Settings, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
+import { Activity, ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ArrowRight, Bell, Bot, CheckCircle2, ChevronDown, CircleHelp, CreditCard, Download, Filter, Globe2, LayoutDashboard, Menu, Plus, Search, Send, Settings, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
 
 type Page = "Overview" | "Wallet" | "Transfers" | "Exchange" | "AI assistant" | "Activity" | "Settings";
 const pages: { label: Page; icon: typeof LayoutDashboard }[] = [
@@ -113,13 +113,66 @@ function AssistantWorkspace() {
 
 function ActivityWorkspace(){
  const {transactions}=useDemoState();
+ const [search,setSearch]=useState("");
+ const [currency,setCurrency]=useState("all");
+ const [type,setType]=useState("all");
+ const [fromDate,setFromDate]=useState("");
+ const [toDate,setToDate]=useState("");
+ const [selected,setSelected]=useState<DemoTransaction|null>(null);
+ const [dateNotice,setDateNotice]=useState("");
+ const filtered=transactions.filter(item=>{
+  const q=search.trim().toLowerCase();
+  const matchesSearch=!q||[item.title,item.detail,item.id,item.currency].some(value=>value.toLowerCase().includes(q));
+  const matchesCurrency=currency==="all"||item.currency===currency;
+  const matchesType=type==="all"||item.type===type;
+  const day=item.timestamp?item.timestamp.slice(0,10):"";
+  const matchesFrom=!fromDate||(!!day&&day>=fromDate);
+  const matchesTo=!toDate||(!!day&&day<=toDate);
+  return matchesSearch&&matchesCurrency&&matchesType&&matchesFrom&&matchesTo;
+ });
+ const exportCsv=()=>{
+  const headers=["Reference","Type","Title","Description","Amount","Currency","Date","Timestamp","Status","Direction"];
+  const rows=filtered.map(item=>[item.id,item.type,item.title,item.detail,item.amount,item.currency,item.date,item.timestamp||"", "SIMULATED",item.incoming?"Incoming":"Outgoing"]);
+  const escape=(value:string)=>'"'+String(value).replace(/"/g,'""')+'"';
+  const csv=[headers,...rows].map(row=>row.map(value=>escape(String(value))).join(",")).join("\\r\\n");
+  const blob=new Blob(["\\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");link.href=url;link.download="zorvian-demo-transactions.csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+ };
+ const clearFilters=()=>{setSearch("");setCurrency("all");setType("all");setFromDate("");setToDate("");setDateNotice("");};
  return <section className="shared-activity-workspace">
-  <div className="shared-activity-intro"><div><span className="eyebrow">YOUR DEMO LEDGER</span><h2>Every activity, in one place.</h2><p>Wallet credits, simulated transfers and currency conversions appear here together.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Browser demo data</span></div>
-  <div className="shared-activity-summary"><div><span>Total records</span><strong>{transactions.length}</strong></div><div><span>Wallet currencies</span><strong>NGN · USD · GHS</strong></div><div><span>Environment</span><strong>Simulation only</strong></div></div>
-  <section className="transfer-history-panel shared-ledger-panel"><div className="panel-heading"><div><h2>Transaction history</h2><p>Newest activity appears first</p></div><span className="wallet-activity-count">{transactions.length} records</span></div>
-   {transactions.length===0?<div className="shared-ledger-empty"><Activity size={25}/><strong>No activity yet</strong><span>Try adding demo funds, recording a transfer or confirming a conversion.</span></div>:transactions.map(item=><div className="activity-row" key={item.id}><div className={"activity-icon "+(item.incoming?"incoming":"")}>{item.type==="exchange"?<ArrowLeftRight size={17}/>:item.incoming?<ArrowDownLeft size={17}/>:<ArrowUpRight size={17}/>}</div><div className="activity-copy"><strong>{item.title}</strong><span>{item.detail} · {item.date} · {item.id}</span></div><div className="shared-ledger-amount"><strong className={item.incoming?"incoming-text":""}>{item.amount}</strong><span>{item.currency} · SIMULATED</span></div></div>)}
+  <div className="shared-activity-intro"><div><span className="eyebrow">YOUR DEMO LEDGER</span><h2>Every activity, in one place.</h2><p>Search, review and export your simulated wallet activity.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Browser demo data</span></div>
+  <div className="shared-activity-summary"><div><span>Total records</span><strong>{transactions.length}</strong></div><div><span>Matching records</span><strong>{filtered.length}</strong></div><div><span>Environment</span><strong>Simulation only</strong></div></div>
+  <section className="transfer-history-panel shared-ledger-panel">
+   <div className="panel-heading"><div><h2>Transaction history</h2><p>Filter and inspect your demo records</p></div><button className="primary-button activity-export-button" onClick={exportCsv} disabled={!filtered.length}><Download size={15}/> Export CSV</button></div>
+   <div className="activity-filter-bar">
+    <label className="activity-search"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, reference or description" aria-label="Search transactions"/></label>
+    <label><span>Currency</span><select value={currency} onChange={e=>setCurrency(e.target.value)}><option value="all">All currencies</option><option value="NGN">NGN</option><option value="USD">USD</option><option value="GHS">GHS</option></select></label>
+    <label><span>Type</span><select value={type} onChange={e=>setType(e.target.value)}><option value="all">All types</option><option value="credit">Wallet credits</option><option value="transfer">Transfers</option><option value="exchange">Exchanges</option></select></label>
+    <label><span>From date</span><input type="date" value={fromDate} onChange={e=>{setFromDate(e.target.value);setDateNotice("");}}/></label>
+    <label><span>To date</span><input type="date" value={toDate} onChange={e=>{setToDate(e.target.value);setDateNotice("");}}/></label>
+    <button className="outline-button activity-clear-button" onClick={clearFilters}><Filter size={14}/> Clear filters</button>
+   </div>
+   {(fromDate||toDate)&&transactions.some(item=>!item.timestamp)&&<p className="activity-date-note">Date filtering applies to records created with a precise timestamp. Older sample entries have display dates only and are excluded from date-filtered results.</p>}
+   {dateNotice&&<p className="activity-date-note">{dateNotice}</p>}
+   {filtered.length===0?<div className="shared-ledger-empty"><Activity size={25}/><strong>No matching activity</strong><span>Try changing your search or filters.</span></div>:<div className="activity-table-list">{filtered.map(item=><div className="activity-row" key={item.id}>
+    <div className={"activity-icon "+(item.incoming?"incoming":"")}>{item.type==="exchange"?<ArrowLeftRight size={17}/>:item.incoming?<ArrowDownLeft size={17}/>:<ArrowUpRight size={17}/>}</div>
+    <div className="activity-copy"><strong>{item.title}</strong><span>{item.detail} · {item.date} · {item.id}</span></div>
+    <div className="shared-ledger-amount"><strong className={item.incoming?"incoming-text":""}>{item.amount}</strong><span>{item.currency} · SIMULATED</span></div>
+    <button className="activity-view-button" onClick={()=>setSelected(item)} aria-label={"View details for "+item.title}><Search size={15}/> Details</button>
+   </div>)}</div>}
+   <div className="activity-results-footer">Showing {filtered.length} of {transactions.length} records · All entries are simulated</div>
   </section>
   <p className="transfer-disclaimer">This history is stored in this browser for the prototype. Clearing browser storage or using another browser/device may reset or separate the demo data. It is not a bank statement.</p>
+  {selected&&<div className="wallet-modal-backdrop" onClick={()=>setSelected(null)}><section className="wallet-modal activity-detail-modal" role="dialog" aria-modal="true" aria-labelledby="activity-detail-title" onClick={e=>e.stopPropagation()}>
+   <button type="button" className="wallet-modal-close" onClick={()=>setSelected(null)} aria-label="Close details"><X size={18}/></button>
+   <div className="wallet-modal-icon"><Activity size={21}/></div><span className="eyebrow">TRANSACTION RECORD</span><h2 id="activity-detail-title">{selected.title}</h2>
+   <div className="activity-detail-status">SIMULATED · NOT A REAL PAYMENT</div>
+   <div className="transfer-review-rows">
+    <div><span>Reference</span><strong>{selected.id}</strong></div><div><span>Type</span><strong>{selected.type}</strong></div><div><span>Description</span><strong>{selected.detail}</strong></div><div><span>Amount</span><strong>{selected.amount} {selected.currency}</strong></div><div><span>Date shown</span><strong>{selected.date}</strong></div><div><span>Precise timestamp</span><strong>{selected.timestamp?new Date(selected.timestamp).toLocaleString():"Not available for this seeded sample"}</strong></div><div><span>Fee information</span><strong>{selected.type==="exchange"?"0.5% illustrative demo fee":selected.type==="transfer"?"₦/currency 0.00 demo fee":"Not applicable / not recorded"}</strong></div><div><span>Status</span><strong>SIMULATED</strong></div>
+   </div>
+   <div className="wallet-modal-actions"><button type="button" className="primary-button" onClick={()=>setSelected(null)}>Close details</button></div>
+  </section></div>}
  </section>;
 }
 
@@ -135,7 +188,7 @@ const startingWallets:DemoWallet[]=[
  {code:"GHS",name:"Ghanaian Cedi",flag:"🇬🇭",symbol:"GH₵",balance:2150}
 ];
 
-type DemoTransaction={id:string;type:"credit"|"transfer"|"exchange";title:string;detail:string;amount:string;currency:string;date:string;incoming:boolean};
+type DemoTransaction={id:string;type:"credit"|"transfer"|"exchange";title:string;detail:string;amount:string;currency:string;date:string;timestamp?:string;incoming:boolean};
 type DemoState={wallets:DemoWallet[];transactions:DemoTransaction[]};
 const initialDemoState:DemoState={wallets:startingWallets,transactions:[
  {id:"DEMO-1001",type:"credit",title:"Salary payment",detail:"Sample incoming payment",amount:"+₦350,000.00",currency:"NGN",date:"Today · 09:42 AM",incoming:true},
@@ -160,7 +213,7 @@ function WalletWorkspace(){
  const [selected,setSelected]=useState<DemoWallet["code"]>("NGN"),[addOpen,setAddOpen]=useState(false),[amount,setAmount]=useState(""),[notice,setNotice]=useState("");
  const active=wallets.find(w=>w.code===selected) ?? wallets[0];
  const money=active.symbol+active.balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
- const addFunds=(e:React.FormEvent)=>{e.preventDefault();const value=Number(amount);if(!Number.isFinite(value)||value<=0||value>100000000){setNotice("Enter a valid positive amount.");return;}updateDemoState(state=>({...state,wallets:state.wallets.map(w=>w.code===selected?{...w,balance:w.balance+value}:w),transactions:[{id:"CREDIT-"+Math.random().toString(36).slice(2,8).toUpperCase(),type:"credit",title:"Demo funds added",detail:"Manual prototype wallet credit",amount:"+"+formatDemoMoney(value,selected),currency:selected,date:new Date().toLocaleString(),incoming:true},...state.transactions]}));setNotice("Demo funds added and recorded in shared activity. No real money was moved.");setAmount("");setAddOpen(false);};
+ const addFunds=(e:React.FormEvent)=>{e.preventDefault();const value=Number(amount);if(!Number.isFinite(value)||value<=0||value>100000000){setNotice("Enter a valid positive amount.");return;}updateDemoState(state=>({...state,wallets:state.wallets.map(w=>w.code===selected?{...w,balance:w.balance+value}:w),transactions:[{id:"CREDIT-"+Math.random().toString(36).slice(2,8).toUpperCase(),type:"credit",title:"Demo funds added",detail:"Manual prototype wallet credit",amount:"+"+formatDemoMoney(value,selected),currency:selected,date:new Date().toLocaleString(),timestamp:new Date().toISOString(),incoming:true},...state.transactions]}));setNotice("Demo funds added and recorded in shared activity. No real money was moved.");setAmount("");setAddOpen(false);};
  return <div className="wallet-workspace">
   <div className="wallet-workspace-intro"><div><span className="eyebrow">YOUR CURRENCY ACCOUNTS</span><h2>All your wallets, together.</h2><p>Explore sample balances and individual wallet activity.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Fictional balances</span></div>
   <div className="wallet-card-grid">{wallets.map(w=><button key={w.code} className={"currency-wallet-card "+(selected===w.code?"selected":"")} onClick={()=>{setSelected(w.code);setNotice("");}}><span className="currency-wallet-flag">{w.flag}</span><span className="currency-wallet-code">{w.code}</span><span className="currency-wallet-name">{w.name}</span><strong>{w.symbol+w.balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong><span className="currency-wallet-link">View wallet details <ArrowUpRight size={14}/></span></button>)}</div>
@@ -201,7 +254,7 @@ function ExchangeWorkspace(){
  const money=(v:number,c:ExchangeCode)=>exchangeSymbols[c]+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
  const swap=()=>{setFrom(to);setTo(from);setReview(false);setNotice("");};
  const submit=(e:React.FormEvent)=>{e.preventDefault();setNotice("");if(!valid){setNotice(from===to?"Choose two different currencies.":source>currentBalances[from]?"Amount exceeds the illustrative source wallet balance.":"Enter a valid amount.");return;}setReview(true);};
- const confirm=()=>{const id="FX-"+Math.random().toString(36).slice(2,8).toUpperCase();const date=new Date().toLocaleString();setRecords(items=>[{id,from:money(source,from)+" "+from,to:money(received,to)+" "+to,date},...items]);updateDemoState(state=>({...state,wallets:state.wallets.map(w=>w.code===from?{...w,balance:w.balance-source}:w.code===to?{...w,balance:w.balance+received}:w),transactions:[{id,type:"exchange",title:"Converted "+from+" to "+to,detail:money(source,from)+" "+from+" → "+money(received,to)+" "+to+" (includes 0.5% demo fee)",amount:"−"+money(source,from),currency:from,date,incoming:false},...state.transactions]}));setReview(false);setNotice("Demo conversion recorded. Both fictional wallet balances and shared activity have been updated.");};
+ const confirm=()=>{const id="FX-"+Math.random().toString(36).slice(2,8).toUpperCase();const date=new Date().toLocaleString();setRecords(items=>[{id,from:money(source,from)+" "+from,to:money(received,to)+" "+to,date},...items]);updateDemoState(state=>({...state,wallets:state.wallets.map(w=>w.code===from?{...w,balance:w.balance-source}:w.code===to?{...w,balance:w.balance+received}:w),transactions:[{id,type:"exchange",title:"Converted "+from+" to "+to,detail:money(source,from)+" "+from+" → "+money(received,to)+" "+to+" (includes 0.5% demo fee)",amount:"−"+money(source,from),currency:from,date,timestamp:new Date().toISOString(),incoming:false},...state.transactions]}));setReview(false);setNotice("Demo conversion recorded. Both fictional wallet balances and shared activity have been updated.");};
  return <div className="exchange-workspace">
   <div className="exchange-intro"><div><span className="eyebrow">CURRENCY CONVERSION</span><h2>One world. Multiple currencies.</h2><p>Preview a conversion across the currencies in your demo wallets.</p></div><span className="wallet-demo-chip"><ShieldCheck size={14}/> Indicative demo rates</span></div>
   <div className="exchange-layout">
