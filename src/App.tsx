@@ -38,7 +38,7 @@ export default function App() {
             <article className="panel assistant-panel"><div className="assistant-orb"><Sparkles size={22}/></div><div className="assistant-tag"><span/> ZORVIAN INTELLIGENCE</div><h2>Your finances, in conversation.</h2><p>Ask questions, explore currency options, and understand your activity with an AI assistant.</p><button className="assistant-button" onClick={() => go("AI assistant")}>Explore AI assistant <ArrowUpRight size={16}/></button><div className="assistant-glow"/></article>
           </section>
           <section className="panel activity-panel"><div className="panel-heading"><div><h2>Recent activity</h2><p>Your latest demo transactions</p></div><button className="text-button" onClick={() => go("Activity")}>View activity <ArrowUpRight size={15}/></button></div><div className="activity-list"><ActivityRow icon={<ArrowDownLeft size={17}/>} title="Salary payment" detail="Today · 09:42 AM" amount="+₦350,000.00" incoming/><ActivityRow icon={<ArrowUpRight size={17}/>} title="Transfer to Chidi" detail="Yesterday · 04:18 PM" amount="−₦45,000.00"/><ActivityRow icon={<ArrowLeftRight size={17}/>} title="Currency exchange" detail="Nov 07 · 11:06 AM" amount="−$120.00"/></div></section>
-        </>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
+        </>:page==="AI assistant"?<AssistantWorkspace/>:<section className="panel placeholder-panel"><div className="placeholder-icon">{page==="AI assistant"?<Bot size={25}/>:page==="Transfers"?<Send size={25}/>:page==="Exchange"?<ArrowLeftRight size={25}/>:page==="Wallet"?<Wallet size={25}/>:<CreditCard size={25}/>}</div><span className="eyebrow">UPCOMING BUILD MILESTONE</span><h2>{page} workspace</h2><p>This area is included in the Zorvian product plan. We’ll implement and test it in a dedicated milestone. No live financial services are connected.</p><button className="outline-button" onClick={() => go("Overview")}>Back to overview</button></section>}
         <footer className="footer"><span>© 2026 Zorvian · Product prototype</span><span><ShieldCheck size={14}/> Built with security in mind</span></footer>
       </div>
     </main>
@@ -52,6 +52,61 @@ function LandingPage({onEnter}:{onEnter:()=>void}) {
  <section className="landing-strip"><div><strong>Multi-currency by design</strong><span>Think beyond borders.</span></div><i/><div><strong>Intelligence, built in</strong><span>Make informed decisions.</span></div><i/><div><strong>Designed for Africa</strong><span>Connected financial experiences.</span></div></section>
  <section className="landing-features" id="features"><div className="landing-section-heading"><span className="landing-kicker">A BETTER WAY TO MANAGE MONEY</span><h2>One experience.<br/><em>More possibilities.</em></h2><p>From everyday money management to cross-border possibilities, Zorvian brings your financial world into one thoughtful space.</p></div><div className="feature-grid"><article><div className="feature-icon"><Wallet size={21}/></div><h3>Multi-currency wallets</h3><p>Keep your different currency experiences together in one clear view.</p></article><article><div className="feature-icon"><Globe2 size={21}/></div><h3>Move across borders</h3><p>Explore a simpler experience for sending and receiving money internationally.</p></article><article><div className="feature-icon"><Sparkles size={21}/></div><h3>Intelligence that helps</h3><p>Ask questions and make sense of your financial activity through conversation.</p></article></div></section>
  <section className="landing-security" id="security"><div className="security-icon"><ShieldCheck size={25}/></div><div><span className="landing-kicker">SECURITY IS A FOUNDATION</span><h2>Built with care. Designed for trust.</h2><p>Security, privacy and responsible financial infrastructure are core design priorities. This prototype uses fictional data and does not process real payments.</p></div><button className="landing-outline" onClick={onEnter}>View the prototype <ArrowRight size={16}/></button></section><footer className="landing-footer"><a className="landing-brand" href="#home">zorvian<span>.</span></a><span>© 2026 Zorvian · Product prototype</span><span>Designed for a connected Africa.</span></footer></main></div>;
+}
+
+type ChatMessage = { role: "assistant" | "user"; content: string };
+
+function getAssistantReply(prompt: string) {
+  const q = prompt.toLowerCase();
+  if (q.includes("balance") || q.includes("wallet") || q.includes("portfolio")) {
+    return "Your fictional demo portfolio is ₦2,450,000.00. The demo wallets show ₦1,820,500.00 in NGN, $420.00 in USD and GH₵2,150.00 in GHS. These are sample figures, not connected account balances.";
+  }
+  if (q.includes("exchange") || q.includes("convert") || q.includes("rate") || q.includes("usd") || q.includes("naira")) {
+    return "I can help you explore a currency conversion. This prototype is not connected to a live foreign-exchange feed, so I won't present an invented rate as current. A later exchange screen will show an indicative demo quote, fees and the amount the recipient would receive before any confirmation.";
+  }
+  if (q.includes("transfer") || q.includes("send money") || q.includes("payment")) {
+    return "I can guide you through a transfer request, including the recipient, destination currency, amount and any displayed fees. This is a prototype: no money can be sent. In a real product, I would show you the full details and require your explicit confirmation before a transfer could be submitted.";
+  }
+  if (q.includes("transaction") || q.includes("activity") || q.includes("spend")) {
+    return "The latest fictional activity in this demo includes a ₦350,000 salary payment, a ₦45,000 transfer to Chidi and a $120 currency exchange. These entries are illustrative only and are not real transactions.";
+  }
+  if (q.includes("help") || q.includes("what can you do") || q.includes("features")) {
+    return "I can help you understand the demo wallets and balances, explain how transfers could work, discuss currency conversion, and summarise the sample transaction activity. I cannot access bank accounts, fetch live exchange rates or move money in this prototype.";
+  }
+  return "I can help with your demo wallet balances, currency conversion concepts, transfers and transaction activity. Try one of the suggested questions below. Remember, Zorvian is currently a simulation and is not connected to real financial accounts.";
+}
+
+function AssistantWorkspace() {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: "assistant", content: "Hello! I'm Zorvian Intelligence. I can help you explore your demo wallets, understand sample activity and learn how cross-border money movement could work. What would you like to know?" }
+  ]);
+  const [draft, setDraft] = useState("");
+  const send = (value = draft) => {
+    const prompt = value.trim();
+    if (!prompt) return;
+    setMessages(current => [...current, { role: "user", content: prompt }, { role: "assistant", content: getAssistantReply(prompt) }]);
+    setDraft("");
+  };
+  const suggestions = ["What is my total balance?", "Explain currency exchange", "How would a transfer work?", "Summarise my recent activity"];
+  return <section className="assistant-workspace">
+    <div className="assistant-chat-heading">
+      <div className="assistant-chat-identity"><div className="assistant-chat-avatar"><Sparkles size={19}/></div><div><h2>Zorvian Intelligence</h2><p><span/> Demo assistant · Ready to help</p></div></div>
+      <span className="assistant-version">PROTOTYPE</span>
+    </div>
+    <div className="assistant-chat-notice"><ShieldCheck size={15}/><span>Demo assistant. It uses fictional account information and cannot access accounts or make payments.</span></div>
+    <div className="assistant-messages" aria-live="polite">
+      {messages.map((message,index) => <div className={`assistant-message ${message.role}`} key={index}>
+        {message.role==="assistant"&&<div className="message-avatar"><Bot size={16}/></div>}
+        <div className="message-bubble"><span className="message-author">{message.role==="assistant"?"Zorvian":"You"}</span><p>{message.content}</p></div>
+      </div>)}
+    </div>
+    <div className="assistant-suggestions"><span>TRY ASKING</span><div>{suggestions.map(item=><button key={item} onClick={()=>send(item)}>{item}</button>)}</div></div>
+    <form className="assistant-composer" onSubmit={event=>{event.preventDefault();send();}}>
+      <input value={draft} onChange={event=>setDraft(event.target.value)} placeholder="Ask Zorvian about your finances..." aria-label="Message Zorvian Intelligence"/>
+      <button type="submit" disabled={!draft.trim()} aria-label="Send message"><Send size={17}/></button>
+    </form>
+    <p className="assistant-disclaimer">Zorvian can make mistakes. Verify important financial information independently.</p>
+  </section>;
 }
 
 function description(page:Page){const copy:Record<Page,string>={Overview:"Here’s your financial snapshot at a glance.",Wallet:"Manage your multi-currency wallet experience.",Transfers:"Explore the cross-border transfer journey.",Exchange:"Preview currency conversion experiences.","AI assistant":"A conversational way to explore your finances.",Activity:"Review your transaction activity.",Settings:"Manage your profile and preferences."};return copy[page];}
