@@ -134,7 +134,8 @@ function ActivityWorkspace(){
   const headers=["Reference","Type","Title","Description","Amount","Currency","Date","Timestamp","Status","Direction"];
   const rows=filtered.map(item=>[item.id,item.type,item.title,item.detail,item.amount,item.currency,item.date,item.timestamp||"", "SIMULATED",item.incoming?"Incoming":"Outgoing"]);
   const escape=(value:string)=>'"'+String(value).replace(/"/g,'""')+'"';
-  const csv=[headers,...rows].map(row=>row.map(value=>escape(String(value))).join(",")).join("\\r\\n");
+  const csv=[headers,...rows].map(row=>row.map(value=>escape(String(value))).join(",")).join("\\r\
+");
   const blob=new Blob(["\\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
   const url=URL.createObjectURL(blob);
   const link=document.createElement("a");link.href=url;link.download="zorvian-demo-transactions.csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
